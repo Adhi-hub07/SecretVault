@@ -2,15 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.vault.app">
     <application
         android:label="Calculator"
+        android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         android:debuggable="true"
         android:supportsRtl="false">
         <activity
             android:name=".SecretVault"
             android:exported="true"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
             android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.provider.Telephony.SECRET_CODE" />
                 <data android:scheme="android_secret_code" android:host="6789" />
