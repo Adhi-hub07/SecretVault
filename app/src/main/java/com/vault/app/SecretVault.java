@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,23 +11,29 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class SecretVault extends Activity implements View.OnClickListener, View.OnLongClickListener {
+public class SecretVault extends Activity implements View.OnClickListener {
+
+    private static final String SECRET_CODE = "2007";
 
     private PinManager pm;
     private Handler handler;
 
     private LinearLayout container;
     private TextView calcDisplay;
-    private String calcInput = "0";
+    private TextView calcPreview;
+    private String calcInput = "";
     private double calcValue = 0;
     private String calcOp = "";
     private boolean freshInput = true;
+    private boolean hasResult = false;
 
     private LinearLayout pinOverlay;
     private TextView pinDisplay;
     private TextView pinStatus;
     private String enteredPin = "";
     private boolean setupMode = false;
+
+    private int[] numberIds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +44,7 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF1A1A2E);
+        root.setBackgroundColor(0xFF000000);
         root.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
 
         container = new LinearLayout(this);
@@ -61,27 +66,30 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
     void buildCalculator() {
         container.removeAllViews();
 
+        calcPreview = new TextView(this);
+        calcPreview.setText("");
+        calcPreview.setTextColor(0xFF666666);
+        calcPreview.setTextSize(16);
+        calcPreview.setGravity(Gravity.END);
+        calcPreview.setPadding(24, 20, 24, 4);
+
         calcDisplay = new TextView(this);
         calcDisplay.setText("0");
         calcDisplay.setTextColor(0xFFFFFFFF);
-        calcDisplay.setTextSize(48);
+        calcDisplay.setTextSize(52);
         calcDisplay.setGravity(Gravity.END);
-        calcDisplay.setPadding(24, 80, 24, 24);
-        calcDisplay.setBackgroundColor(0xFF16213E);
-        calcDisplay.setOnLongClickListener(this);
+        calcDisplay.setPadding(24, 4, 24, 24);
+        calcDisplay.setBackgroundColor(0xFF000000);
 
-        LinearLayout displayRow = new LinearLayout(this);
-        displayRow.setOrientation(LinearLayout.HORIZONTAL);
-        calcDisplay.setLayoutParams(new LinearLayout.LayoutParams(-1, -2, 1f));
-        displayRow.addView(calcDisplay);
-        container.addView(displayRow);
+        container.addView(calcPreview);
+        container.addView(calcDisplay);
 
         String[][] rows = {
             {"C", "\u00B1", "%", "\u00F7"},
             {"7", "8", "9", "\u00D7"},
             {"4", "5", "6", "\u2212"},
             {"1", "2", "3", "+"},
-            {"0", ".", "=", null}
+            {null, "0", ".", "="}
         };
 
         for (int r = 0; r < rows.length; r++) {
@@ -91,45 +99,44 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
 
             for (int c = 0; c < rows[r].length; c++) {
                 String label = rows[r][c];
-                if (label == null) continue;
+                if (label == null) {
+                    View spacer = new View(this);
+                    spacer.setLayoutParams(new LinearLayout.LayoutParams(0, 1, 0.5f));
+                    ll.addView(spacer);
+                    continue;
+                }
 
                 Button b = new Button(this);
                 b.setText(label);
-                b.setTextColor(0xFFFFFFFF);
-                b.setTextSize(20);
+                b.setTextSize(22);
+                b.setPadding(0, 18, 0, 18);
 
-                boolean isOp = "+-\u00D7\u00F7".contains(label);
-                boolean isEq = label.equals("=");
-                boolean isClear = label.equals("C");
                 boolean isNum = "0123456789.".contains(label);
 
-                if (isOp || isEq) {
-                    b.setBackgroundColor(0xFFE94560);
-                } else if (isClear) {
-                    b.setBackgroundColor(0xFF0F3460);
+                if (label.equals("=")) {
+                    b.setBackgroundColor(0xFF4CAF50);
+                    b.setTextColor(0xFFFFFFFF);
+                } else if ("\u00F7\u00D7\u2212+".contains(label)) {
+                    b.setBackgroundColor(0xFFE67E22);
+                    b.setTextColor(0xFFFFFFFF);
+                } else if (label.equals("C")) {
+                    b.setBackgroundColor(0xFFE74C3C);
+                    b.setTextColor(0xFFFFFFFF);
+                } else if (label.equals("\u00B1") || label.equals("%")) {
+                    b.setBackgroundColor(0xFF555555);
+                    b.setTextColor(0xFFFFFFFF);
                 } else {
-                    b.setBackgroundColor(0xFF1A1A3E);
+                    b.setBackgroundColor(0xFF333333);
+                    b.setTextColor(0xFFFFFFFF);
                 }
 
-                if (r == 4 && c == 0) {
-                    b.setLayoutParams(new LinearLayout.LayoutParams(0, 72, 2f));
-                    ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
-                    if (mp != null) { mp.setMargins(4, 4, 0, 4); }
-                } else if (r == 4 && c == 1) {
-                    b.setLayoutParams(new LinearLayout.LayoutParams(0, 72, 1f));
-                    ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
-                    if (mp != null) { mp.setMargins(2, 4, 2, 4); }
-                } else if (r == 4 && c == 2) {
-                    b.setLayoutParams(new LinearLayout.LayoutParams(0, 72, 1f));
-                    ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
-                    if (mp != null) { mp.setMargins(2, 4, 4, 4); }
-                } else if (r == 4 && c == 3) {
-                    continue;
+                if (r == 4 && c == 1) {
+                    b.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1.5f));
                 } else {
-                    b.setLayoutParams(new LinearLayout.LayoutParams(0, 72, 1f));
-                    ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
-                    if (mp != null) { mp.setMargins(4, 4, 4, 4); }
+                    b.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
                 }
+                ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
+                if (mp != null) mp.setMargins(3, 3, 3, 3);
 
                 b.setOnClickListener(this);
                 ll.addView(b);
@@ -146,49 +153,162 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
         container.addView(pinOverlay);
     }
 
-    void showPinSetup() {
-        setupMode = true;
-        enteredPin = "";
-        buildPinContent();
-        pinStatus.setText("Set PIN (4+ digits)");
-        updatePinDots();
-        pinOverlay.setVisibility(View.VISIBLE);
+    void openVault() {
+        if (setupMode) return;
+        if (!pm.isSetup()) return;
+        startActivity(new Intent(this, VaultActivity.class));
     }
 
-    void showPinAuth() {
-        setupMode = false;
-        enteredPin = "";
-        buildPinContent();
-        pinStatus.setText("Enter PIN");
-        updatePinDots();
-        pinOverlay.setVisibility(View.VISIBLE);
+    @Override
+    public void onClick(View v) {
+        String label = ((Button) v).getText().toString();
+        handleCalc(label);
     }
+
+    void handleCalc(String label) {
+        if (label.equals("C")) {
+            calcInput = "";
+            calcValue = 0;
+            calcOp = "";
+            freshInput = true;
+            hasResult = false;
+            calcPreview.setText("");
+            calcDisplay.setText("0");
+            return;
+        }
+
+        if (label.equals("\u00B1")) {
+            if (calcInput.isEmpty() || calcInput.equals("0")) return;
+            if (calcInput.startsWith("-")) {
+                calcInput = calcInput.substring(1);
+            } else {
+                calcInput = "-" + calcInput;
+            }
+            calcDisplay.setText(calcInput);
+            return;
+        }
+
+        if (label.equals("%")) {
+            if (calcInput.isEmpty()) return;
+            double v = Double.parseDouble(calcInput) / 100;
+            calcInput = formatNum(v);
+            calcDisplay.setText(calcInput);
+            return;
+        }
+
+        if ("0123456789.".contains(label)) {
+            if (hasResult) {
+                calcInput = label;
+                hasResult = false;
+                calcOp = "";
+                calcValue = 0;
+                calcPreview.setText("");
+            } else if (freshInput || calcInput.equals("0")) {
+                calcInput = label;
+                freshInput = false;
+            } else {
+                if (label.equals(".")) {
+                    if (calcInput.contains(".")) return;
+                    if (calcInput.isEmpty()) calcInput = "0";
+                }
+                if (calcInput.equals("0") && !label.equals(".")) {
+                    calcInput = label;
+                } else {
+                    calcInput += label;
+                }
+            }
+            calcDisplay.setText(calcInput);
+            return;
+        }
+
+        if ("+\u2212\u00D7\u00F7".contains(label)) {
+            if (!calcInput.isEmpty()) {
+                if (!calcOp.isEmpty() && !freshInput) {
+                    double result = compute(calcValue, Double.parseDouble(calcInput), calcOp);
+                    calcInput = formatNum(result);
+                    calcDisplay.setText(calcInput);
+                }
+                calcValue = Double.parseDouble(calcInput);
+                calcOp = label;
+                freshInput = true;
+                hasResult = false;
+                calcPreview.setText(formatNum(calcValue) + " " + label);
+            }
+            return;
+        }
+
+        if (label.equals("=")) {
+            if (calcOp.isEmpty()) {
+                if (calcInput.equals(SECRET_CODE)) {
+                    if (pm.isSetup()) {
+                        showPinAuth();
+                    } else {
+                        showPinSetup();
+                    }
+                    return;
+                }
+                hasResult = true;
+                calcPreview.setText(calcInput + " =");
+                return;
+            }
+            if (!calcInput.isEmpty()) {
+                double result = compute(calcValue, Double.parseDouble(calcInput), calcOp);
+                String expr = formatNum(calcValue) + " " + calcOp + " " + calcInput;
+                calcInput = formatNum(result);
+                calcDisplay.setText(calcInput);
+                calcPreview.setText(expr + " =");
+                calcOp = "";
+                freshInput = true;
+                hasResult = true;
+            }
+        }
+    }
+
+    String formatNum(double n) {
+        if (n == (long) n) return String.valueOf((long) n);
+        String s = String.valueOf(n);
+        if (s.endsWith(".0")) return s.substring(0, s.length() - 2);
+        return s;
+    }
+
+    double compute(double a, double b, String op) {
+        switch (op) {
+            case "+": return a + b;
+            case "\u2212": return a - b;
+            case "\u00D7": return a * b;
+            case "\u00F7": return b != 0 ? a / b : 0;
+        }
+        return 0;
+    }
+
+    // ---- PIN overlay ----
 
     void buildPinContent() {
         pinOverlay.removeAllViews();
-
-        pinStatus = new TextView(this);
-        pinStatus.setTextColor(0xFFFFFFFF);
-        pinStatus.setTextSize(22);
-        pinStatus.setGravity(Gravity.CENTER);
-        pinStatus.setPadding(0, 40, 0, 20);
-
-        pinDisplay = new TextView(this);
-        pinDisplay.setTextColor(0xFF53D8FB);
-        pinDisplay.setTextSize(32);
-        pinDisplay.setGravity(Gravity.CENTER);
-        pinDisplay.setPadding(0, 0, 0, 30);
 
         Button backBtn = new Button(this);
         backBtn.setText("\u2190 Calculator");
         backBtn.setTextColor(0xFF8899AA);
         backBtn.setBackgroundColor(0x00000000);
         backBtn.setTextSize(14);
+        backBtn.setPadding(16, 16, 16, 16);
         backBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 pinOverlay.setVisibility(View.GONE);
             }
         });
+
+        pinStatus = new TextView(this);
+        pinStatus.setTextColor(0xFFFFFFFF);
+        pinStatus.setTextSize(22);
+        pinStatus.setGravity(Gravity.CENTER);
+        pinStatus.setPadding(0, 20, 0, 10);
+
+        pinDisplay = new TextView(this);
+        pinDisplay.setTextColor(0xFF53D8FB);
+        pinDisplay.setTextSize(36);
+        pinDisplay.setGravity(Gravity.CENTER);
+        pinDisplay.setPadding(0, 0, 0, 20);
 
         pinOverlay.addView(backBtn);
         pinOverlay.addView(pinStatus);
@@ -209,7 +329,9 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
                 if (k >= 0) {
                     b.setText(String.valueOf(k));
                     b.setTextColor(0xFFFFFFFF);
-                    b.setBackgroundColor(0x22000000);
+                    b.setBackgroundColor(0xFF333333);
+                    b.setTextSize(22);
+                    b.setPadding(0, 16, 0, 16);
                     b.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
                             onPinKey(((Button)v).getText().toString());
@@ -217,13 +339,13 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
                     });
                 } else if (k == -2) {
                     b.setText("DEL");
-                    b.setTextColor(0xFFE94560);
-                    b.setBackgroundColor(0x22000000);
+                    b.setTextColor(0xFFE74C3C);
+                    b.setBackgroundColor(0xFF222222);
+                    b.setTextSize(18);
                     b.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
-                            if (enteredPin.length() > 0) {
+                            if (enteredPin.length() > 0)
                                 enteredPin = enteredPin.substring(0, enteredPin.length() - 1);
-                            }
                             updatePinDots();
                         }
                     });
@@ -234,6 +356,24 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
             }
             pinOverlay.addView(ll);
         }
+    }
+
+    void showPinSetup() {
+        setupMode = true;
+        enteredPin = "";
+        buildPinContent();
+        pinStatus.setText("Set PIN (4+ digits)");
+        updatePinDots();
+        pinOverlay.setVisibility(View.VISIBLE);
+    }
+
+    void showPinAuth() {
+        setupMode = false;
+        enteredPin = "";
+        buildPinContent();
+        pinStatus.setText("Enter PIN");
+        updatePinDots();
+        pinOverlay.setVisibility(View.VISIBLE);
     }
 
     void onPinKey(String digit) {
@@ -254,7 +394,7 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
                 pinStatus.setText("Opening...");
                 handler.postDelayed(new Runnable() {
                     public void run() {
-                        startActivity(new Intent(SecretVault.this, VaultActivity.class));
+                        openVault();
                     }
                 }, 200);
             } else {
@@ -273,93 +413,5 @@ public class SecretVault extends Activity implements View.OnClickListener, View.
         String d = "";
         for (int i = 0; i < enteredPin.length(); i++) d += "\u2022";
         pinDisplay.setText(d);
-    }
-
-    void doCalc(String label) {
-        if ("C".equals(label)) {
-            calcInput = "0";
-            calcValue = 0;
-            calcOp = "";
-            freshInput = true;
-            calcDisplay.setText("0");
-            return;
-        }
-        if ("\u00B1".equals(label)) {
-            double v = Double.parseDouble(calcInput);
-            calcInput = String.valueOf(-v);
-            if (calcInput.endsWith(".0")) calcInput = calcInput.substring(0, calcInput.length() - 2);
-            calcDisplay.setText(calcInput);
-            return;
-        }
-        if ("%".equals(label)) {
-            double v = Double.parseDouble(calcInput) / 100;
-            calcInput = String.valueOf(v);
-            if (calcInput.endsWith(".0")) calcInput = calcInput.substring(0, calcInput.length() - 2);
-            calcDisplay.setText(calcInput);
-            return;
-        }
-
-        if ("0123456789.".contains(label)) {
-            if (freshInput) {
-                calcInput = label;
-                freshInput = false;
-            } else {
-                if (label.equals(".") && calcInput.contains(".")) return;
-                calcInput += label;
-            }
-            calcDisplay.setText(calcInput);
-            return;
-        }
-
-        if ("+\u2212\u00D7\u00F7".contains(label)) {
-            if (!calcOp.isEmpty()) {
-                double result = compute(calcValue, Double.parseDouble(calcInput), calcOp);
-                calcInput = String.valueOf(result);
-                if (calcInput.endsWith(".0")) calcInput = calcInput.substring(0, calcInput.length() - 2);
-                calcDisplay.setText(calcInput);
-            }
-            calcValue = Double.parseDouble(calcInput);
-            calcOp = label;
-            freshInput = true;
-            return;
-        }
-
-        if ("=".equals(label)) {
-            if (!calcOp.isEmpty()) {
-                double result = compute(calcValue, Double.parseDouble(calcInput), calcOp);
-                calcInput = String.valueOf(result);
-                if (calcInput.endsWith(".0")) calcInput = calcInput.substring(0, calcInput.length() - 2);
-                calcDisplay.setText(calcInput);
-                calcOp = "";
-                freshInput = true;
-            }
-        }
-    }
-
-    double compute(double a, double b, String op) {
-        if ("+".equals(op)) return a + b;
-        if ("\u2212".equals(op)) return a - b;
-        if ("\u00D7".equals(op)) return a * b;
-        if ("\u00F7".equals(op)) return b != 0 ? a / b : 0;
-        return 0;
-    }
-
-    @Override
-    public void onClick(View v) {
-        String label = ((Button)v).getText().toString();
-        doCalc(label);
-    }
-
-    @Override
-    public boolean onLongClick(View v) {
-        if (v == calcDisplay) {
-            if (pm.isSetup()) {
-                showPinAuth();
-            } else {
-                showPinSetup();
-            }
-            return true;
-        }
-        return false;
     }
 }
