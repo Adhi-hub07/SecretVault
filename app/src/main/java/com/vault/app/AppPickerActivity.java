@@ -34,10 +34,16 @@ public class AppPickerActivity extends Activity implements View.OnClickListener 
         if (pkg == null) return;
         boolean newState = !pm.isHidden(pkg);
         pm.toggleHiddenApp(pkg);
-        v.setSelected(newState);
+
+        if (newState) {
+            pm.disableLauncher(pkgMan, pkg);
+        } else {
+            pm.enableLauncher(pkgMan, pkg);
+        }
+
         CheckBox cb = (CheckBox) v.findViewWithTag("cb_" + pkg);
         if (cb != null) cb.setChecked(newState);
-        Toast.makeText(this, newState ? "Added" : "Removed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, newState ? "Hidden (invisible)" : "Visible again", Toast.LENGTH_SHORT).show();
     }
 
     @Override

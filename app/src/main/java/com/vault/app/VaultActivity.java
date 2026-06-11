@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -17,6 +18,7 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
     private PackageManager pkgMan;
     private LinearLayout appGrid;
     private TextView statusText;
+    private Handler handler;
 
     @Override
     public void onClick(View v) {
@@ -29,15 +31,35 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
             hideVaultIcon();
             return;
         }
-        Intent launch = pkgMan.getLaunchIntentForPackage(tag);
-        if (launch != null) startActivity(launch);
+        final String pkg = tag;
+        String compName = pm.getComponentName(pkg);
+
+        if (compName != null) {
+            pm.setComponentEnabled(pkgMan, pkg, true);
+            try {
+                Intent launch = pkgMan.getLaunchIntentForPackage(pkg);
+                if (launch != null) startActivity(launch);
+            } catch (Exception e) {
+                Toast.makeText(this, "Cannot launch", Toast.LENGTH_SHORT).show();
+            }
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    pm.setComponentEnabled(pkgMan, pkg, false);
+                }
+            }, 3000);
+        } else {
+            Intent launch = pkgMan.getLaunchIntentForPackage(pkg);
+            if (launch != null) startActivity(launch);
+        }
     }
 
     @Override
     public boolean onLongClick(View v) {
-        String pkg = (String) v.getTag();
+        final String pkg = (String) v.getTag();
         if (pkg == null) return false;
+        pm.enableLauncher(pkgMan, pkg);
         pm.toggleHiddenApp(pkg);
+        Toast.makeText(this, "Removed " + pkg, Toast.LENGTH_SHORT).show();
         loadApps();
         return true;
     }
@@ -45,6 +67,8 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        handler = new Handler();
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -152,6 +176,7 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
 
                     if (row != null) row.addView(item);
                 } catch (PackageManager.NameNotFoundException e) {
+                    pm.enableLauncher(pkgMan, pkg);
                     pm.toggleHiddenApp(pkg);
                     loadApps();
                 }
