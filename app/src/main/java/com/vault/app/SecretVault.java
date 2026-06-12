@@ -8,8 +8,10 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 
 public class SecretVault extends Activity implements View.OnClickListener {
 
@@ -18,7 +20,9 @@ public class SecretVault extends Activity implements View.OnClickListener {
     private PinManager pm;
     private Handler handler;
 
-    private LinearLayout container;
+    private FrameLayout frame;
+    private LinearLayout calcView;
+    private View pinView;
     private TextView calcDisplay;
     private TextView calcPreview;
     private String calcInput = "";
@@ -27,13 +31,10 @@ public class SecretVault extends Activity implements View.OnClickListener {
     private boolean freshInput = true;
     private boolean hasResult = false;
 
-    private LinearLayout pinOverlay;
     private TextView pinDisplay;
     private TextView pinStatus;
     private String enteredPin = "";
     private boolean setupMode = false;
-
-    private int[] numberIds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,21 +43,14 @@ public class SecretVault extends Activity implements View.OnClickListener {
         handler = new Handler();
         pm = new PinManager(this);
 
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF000000);
-        root.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
-
-        container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
-
-        root.addView(container);
-        setContentView(root);
+        frame = new FrameLayout(this);
+        frame.setBackgroundColor(0xFF000000);
+        frame.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
 
         buildCalculator();
-        buildPinContent();
-        pinOverlay.setVisibility(View.GONE);
+        buildPinView();
+
+        setContentView(frame);
 
         if (!pm.isSetup()) {
             showPinSetup();
@@ -64,14 +58,15 @@ public class SecretVault extends Activity implements View.OnClickListener {
     }
 
     void buildCalculator() {
-        container.removeAllViews();
+        calcView = new LinearLayout(this);
+        calcView.setOrientation(LinearLayout.VERTICAL);
 
         calcPreview = new TextView(this);
         calcPreview.setText("");
         calcPreview.setTextColor(0xFF666666);
         calcPreview.setTextSize(16);
         calcPreview.setGravity(Gravity.END);
-        calcPreview.setPadding(24, 20, 24, 4);
+        calcPreview.setPadding(24, 100, 24, 4);
 
         calcDisplay = new TextView(this);
         calcDisplay.setText("0");
@@ -79,10 +74,9 @@ public class SecretVault extends Activity implements View.OnClickListener {
         calcDisplay.setTextSize(52);
         calcDisplay.setGravity(Gravity.END);
         calcDisplay.setPadding(24, 4, 24, 24);
-        calcDisplay.setBackgroundColor(0xFF000000);
 
-        container.addView(calcPreview);
-        container.addView(calcDisplay);
+        calcView.addView(calcPreview);
+        calcView.addView(calcDisplay);
 
         String[][] rows = {
             {"C", "\u00B1", "%", "\u00F7"},
@@ -95,7 +89,6 @@ public class SecretVault extends Activity implements View.OnClickListener {
         for (int r = 0; r < rows.length; r++) {
             LinearLayout ll = new LinearLayout(this);
             ll.setOrientation(LinearLayout.HORIZONTAL);
-            ll.setGravity(Gravity.CENTER);
 
             for (int c = 0; c < rows[r].length; c++) {
                 String label = rows[r][c];
@@ -110,8 +103,6 @@ public class SecretVault extends Activity implements View.OnClickListener {
                 b.setText(label);
                 b.setTextSize(22);
                 b.setPadding(0, 18, 0, 18);
-
-                boolean isNum = "0123456789.".contains(label);
 
                 if (label.equals("=")) {
                     b.setBackgroundColor(0xFF4CAF50);
@@ -141,22 +132,156 @@ public class SecretVault extends Activity implements View.OnClickListener {
                 b.setOnClickListener(this);
                 ll.addView(b);
             }
-            container.addView(ll);
+            calcView.addView(ll);
         }
 
-        pinOverlay = new LinearLayout(this);
-        pinOverlay.setOrientation(LinearLayout.VERTICAL);
-        pinOverlay.setGravity(Gravity.CENTER);
-        pinOverlay.setBackgroundColor(0xCC0F3460);
-        pinOverlay.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
-        pinOverlay.setVisibility(View.GONE);
-        container.addView(pinOverlay);
+        frame.addView(calcView, new FrameLayout.LayoutParams(-1, -1));
+    }
+
+    void buildPinView() {
+        LinearLayout v = new LinearLayout(this);
+        v.setOrientation(LinearLayout.VERTICAL);
+        v.setGravity(Gravity.CENTER);
+        v.setBackgroundColor(0xCC0F3460);
+        v.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
+
+        Button backBtn = new Button(this);
+        backBtn.setText("\u2190 Back");
+        backBtn.setTextColor(0xFF8899AA);
+        backBtn.setBackgroundColor(0x00000000);
+        backBtn.setTextSize(14);
+        backBtn.setPadding(16, 24, 16, 16);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v2) {
+                pinView.setVisibility(View.GONE);
+                calcView.setVisibility(View.VISIBLE);
+            }
+        });
+
+        pinStatus = new TextView(this);
+        pinStatus.setTextColor(0xFFFFFFFF);
+        pinStatus.setTextSize(22);
+        pinStatus.setGravity(Gravity.CENTER);
+        pinStatus.setPadding(0, 0, 0, 10);
+
+        pinDisplay = new TextView(this);
+        pinDisplay.setTextColor(0xFF53D8FB);
+        pinDisplay.setTextSize(36);
+        pinDisplay.setGravity(Gravity.CENTER);
+        pinDisplay.setPadding(0, 0, 0, 20);
+
+        v.addView(backBtn);
+        v.addView(pinStatus);
+        v.addView(pinDisplay);
+
+        int[][] keys = {{1,2,3},{4,5,6},{7,8,9},{-1,0,-2}};
+        for (int r = 0; r < keys.length; r++) {
+            LinearLayout ll = new LinearLayout(this);
+            ll.setOrientation(LinearLayout.HORIZONTAL);
+            ll.setGravity(Gravity.CENTER);
+            for (int c = 0; c < keys[r].length; c++) {
+                int k = keys[r][c];
+                Button b = new Button(this);
+                b.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+                ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
+                if (mp != null) mp.setMargins(8, 8, 8, 8);
+
+                if (k >= 0) {
+                    b.setText(String.valueOf(k));
+                    b.setTextColor(0xFFFFFFFF);
+                    b.setBackgroundColor(0xFF333333);
+                    b.setTextSize(22);
+                    b.setPadding(0, 16, 0, 16);
+                    b.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v2) {
+                            onPinKey(((Button)v2).getText().toString());
+                        }
+                    });
+                } else if (k == -2) {
+                    b.setText("DEL");
+                    b.setTextColor(0xFFE74C3C);
+                    b.setBackgroundColor(0xFF222222);
+                    b.setTextSize(18);
+                    b.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v2) {
+                            if (enteredPin.length() > 0)
+                                enteredPin = enteredPin.substring(0, enteredPin.length() - 1);
+                            updatePinDots();
+                        }
+                    });
+                } else {
+                    b.setVisibility(View.INVISIBLE);
+                }
+                ll.addView(b);
+            }
+            v.addView(ll);
+        }
+
+        pinView = v;
+        pinView.setVisibility(View.GONE);
+        frame.addView(pinView, new FrameLayout.LayoutParams(-1, -1));
     }
 
     void openVault() {
         if (setupMode) return;
         if (!pm.isSetup()) return;
+        pinView.setVisibility(View.GONE);
+        calcView.setVisibility(View.VISIBLE);
         startActivity(new Intent(this, VaultActivity.class));
+    }
+
+    void showPinSetup() {
+        setupMode = true;
+        enteredPin = "";
+        pinStatus.setText("Set PIN (4+ digits)");
+        updatePinDots();
+        calcView.setVisibility(View.GONE);
+        pinView.setVisibility(View.VISIBLE);
+    }
+
+    void showPinAuth() {
+        setupMode = false;
+        enteredPin = "";
+        pinStatus.setText("Enter PIN");
+        updatePinDots();
+        calcView.setVisibility(View.GONE);
+        pinView.setVisibility(View.VISIBLE);
+    }
+
+    void onPinKey(String digit) {
+        enteredPin += digit;
+        updatePinDots();
+        if (enteredPin.length() >= 4) {
+            if (setupMode) {
+                pm.setPin(enteredPin);
+                pinStatus.setText("PIN set!");
+                setupMode = false;
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        pinView.setVisibility(View.GONE);
+                        calcView.setVisibility(View.VISIBLE);
+                        pinStatus.setText("Enter PIN");
+                    }
+                }, 500);
+            } else if (pm.checkPin(enteredPin)) {
+                pinStatus.setText("Opening...");
+                handler.postDelayed(new Runnable() {
+                    public void run() { openVault(); }
+                }, 200);
+            } else {
+                pinStatus.setText("Wrong PIN!");
+                enteredPin = "";
+                handler.postDelayed(new Runnable() {
+                    public void run() { updatePinDots(); }
+                }, 600);
+            }
+        }
+    }
+
+    void updatePinDots() {
+        String d = "";
+        for (int i = 0; i < enteredPin.length(); i++) d += "\u2022";
+        pinDisplay.setText(d);
     }
 
     @Override
@@ -179,11 +304,10 @@ public class SecretVault extends Activity implements View.OnClickListener {
 
         if (label.equals("\u00B1")) {
             if (calcInput.isEmpty() || calcInput.equals("0")) return;
-            if (calcInput.startsWith("-")) {
+            if (calcInput.startsWith("-"))
                 calcInput = calcInput.substring(1);
-            } else {
+            else
                 calcInput = "-" + calcInput;
-            }
             calcDisplay.setText(calcInput);
             return;
         }
@@ -207,15 +331,12 @@ public class SecretVault extends Activity implements View.OnClickListener {
                 calcInput = label;
                 freshInput = false;
             } else {
-                if (label.equals(".")) {
-                    if (calcInput.contains(".")) return;
-                    if (calcInput.isEmpty()) calcInput = "0";
-                }
-                if (calcInput.equals("0") && !label.equals(".")) {
+                if (label.equals(".") && calcInput.contains(".")) return;
+                if (calcInput.isEmpty()) calcInput = "0";
+                if (calcInput.equals("0") && !label.equals("."))
                     calcInput = label;
-                } else {
+                else
                     calcInput += label;
-                }
             }
             calcDisplay.setText(calcInput);
             return;
@@ -240,13 +361,13 @@ public class SecretVault extends Activity implements View.OnClickListener {
         if (label.equals("=")) {
             if (calcOp.isEmpty()) {
                 if (calcInput.equals(SECRET_CODE)) {
-                    if (pm.isSetup()) {
+                    if (pm.isSetup())
                         showPinAuth();
-                    } else {
+                    else
                         showPinSetup();
-                    }
                     return;
                 }
+                if (calcInput.isEmpty() || calcInput.equals("0")) return;
                 hasResult = true;
                 calcPreview.setText(calcInput + " =");
                 return;
@@ -279,139 +400,5 @@ public class SecretVault extends Activity implements View.OnClickListener {
             case "\u00F7": return b != 0 ? a / b : 0;
         }
         return 0;
-    }
-
-    // ---- PIN overlay ----
-
-    void buildPinContent() {
-        pinOverlay.removeAllViews();
-
-        Button backBtn = new Button(this);
-        backBtn.setText("\u2190 Calculator");
-        backBtn.setTextColor(0xFF8899AA);
-        backBtn.setBackgroundColor(0x00000000);
-        backBtn.setTextSize(14);
-        backBtn.setPadding(16, 16, 16, 16);
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                pinOverlay.setVisibility(View.GONE);
-            }
-        });
-
-        pinStatus = new TextView(this);
-        pinStatus.setTextColor(0xFFFFFFFF);
-        pinStatus.setTextSize(22);
-        pinStatus.setGravity(Gravity.CENTER);
-        pinStatus.setPadding(0, 20, 0, 10);
-
-        pinDisplay = new TextView(this);
-        pinDisplay.setTextColor(0xFF53D8FB);
-        pinDisplay.setTextSize(36);
-        pinDisplay.setGravity(Gravity.CENTER);
-        pinDisplay.setPadding(0, 0, 0, 20);
-
-        pinOverlay.addView(backBtn);
-        pinOverlay.addView(pinStatus);
-        pinOverlay.addView(pinDisplay);
-
-        int[][] keys = {{1,2,3},{4,5,6},{7,8,9},{-1,0,-2}};
-        for (int r = 0; r < keys.length; r++) {
-            LinearLayout ll = new LinearLayout(this);
-            ll.setOrientation(LinearLayout.HORIZONTAL);
-            ll.setGravity(Gravity.CENTER);
-            for (int c = 0; c < keys[r].length; c++) {
-                int k = keys[r][c];
-                Button b = new Button(this);
-                b.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
-                ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) b.getLayoutParams();
-                if (mp != null) mp.setMargins(8, 8, 8, 8);
-
-                if (k >= 0) {
-                    b.setText(String.valueOf(k));
-                    b.setTextColor(0xFFFFFFFF);
-                    b.setBackgroundColor(0xFF333333);
-                    b.setTextSize(22);
-                    b.setPadding(0, 16, 0, 16);
-                    b.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v) {
-                            onPinKey(((Button)v).getText().toString());
-                        }
-                    });
-                } else if (k == -2) {
-                    b.setText("DEL");
-                    b.setTextColor(0xFFE74C3C);
-                    b.setBackgroundColor(0xFF222222);
-                    b.setTextSize(18);
-                    b.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v) {
-                            if (enteredPin.length() > 0)
-                                enteredPin = enteredPin.substring(0, enteredPin.length() - 1);
-                            updatePinDots();
-                        }
-                    });
-                } else {
-                    b.setVisibility(View.INVISIBLE);
-                }
-                ll.addView(b);
-            }
-            pinOverlay.addView(ll);
-        }
-    }
-
-    void showPinSetup() {
-        setupMode = true;
-        enteredPin = "";
-        buildPinContent();
-        pinStatus.setText("Set PIN (4+ digits)");
-        updatePinDots();
-        pinOverlay.setVisibility(View.VISIBLE);
-    }
-
-    void showPinAuth() {
-        setupMode = false;
-        enteredPin = "";
-        buildPinContent();
-        pinStatus.setText("Enter PIN");
-        updatePinDots();
-        pinOverlay.setVisibility(View.VISIBLE);
-    }
-
-    void onPinKey(String digit) {
-        enteredPin += digit;
-        updatePinDots();
-        if (enteredPin.length() >= 4) {
-            if (setupMode) {
-                pm.setPin(enteredPin);
-                pinStatus.setText("PIN set!");
-                setupMode = false;
-                handler.postDelayed(new Runnable() {
-                    public void run() {
-                        pinOverlay.setVisibility(View.GONE);
-                        pinStatus.setText("Enter PIN");
-                    }
-                }, 500);
-            } else if (pm.checkPin(enteredPin)) {
-                pinStatus.setText("Opening...");
-                handler.postDelayed(new Runnable() {
-                    public void run() {
-                        openVault();
-                    }
-                }, 200);
-            } else {
-                pinStatus.setText("Wrong PIN!");
-                enteredPin = "";
-                handler.postDelayed(new Runnable() {
-                    public void run() {
-                        updatePinDots();
-                    }
-                }, 600);
-            }
-        }
-    }
-
-    void updatePinDots() {
-        String d = "";
-        for (int i = 0; i < enteredPin.length(); i++) d += "\u2022";
-        pinDisplay.setText(d);
     }
 }
