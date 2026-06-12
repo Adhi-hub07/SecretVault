@@ -80,6 +80,10 @@ code{background:rgba(233,69,96,.15);color:#e94560;padding:2px 8px;border-radius:
         <h3>Dialer Code</h3>
         <p>Also works by dialing <code>*#*#6789#*#*</code> in your phone app &mdash; skips the calculator.</p>
       </div>
+      <div class="card" style="border-color:#4CAF50">
+        <h3>Root Mode</h3>
+        <p>Auto-detects root. Uses <code>su -c "pm hide"</code> to make apps invisible from <strong>Settings</strong> and <strong>Play Store</strong> too. Green "root" badge shown in vault. Falls back to non-root hiding if no root.</p>
+      </div>
     </div>
   </section>
 
@@ -118,25 +122,30 @@ code{background:rgba(233,69,96,.15);color:#e94560;padding:2px 8px;border-radius:
         <div class="step-num">5</div>
         <div class="step-text">
           <h4>Add Apps to Hide</h4>
-          <p>Inside the vault, tap <strong>"+ Add Apps"</strong>. Browse the list and tap any app to hide it. It instantly disappears from your launcher and search results. To unhide: long-press the app in the vault.</p>
+          <p>Inside the vault, tap <strong>"+ Add Apps"</strong>. Browse the list and tap any app to hide it. <strong>With root:</strong> completely vanishes from Settings &amp; Play Store too. <strong>Without root:</strong> vanishes from launcher &amp; search. To unhide: long-press the app in the vault.</p>
         </div>
       </div>
       <div class="step-item">
         <div class="step-num">6</div>
         <div class="step-text">
           <h4>Use Hidden Apps</h4>
-          <p>Tap any hidden app from the vault grid to launch it. It re-appears for 3 seconds while you use it, then vanishes again. Long-press to permanently unhide.</p>
+          <p>Tap any hidden app from the vault grid to launch it. It re-appears for 3 seconds while you use it, then vanishes again. Long-press to permanently unhide and restore visibility.</p>
         </div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>&#9888; Note</h2>
-    <div class="card" style="border-color:rgba(233,69,96,.3)">
-      <p style="color:#ccc;font-size:14px;line-height:1.6">
-        Hidden apps disappear from the launcher, app drawer, and system search &mdash; but still show in <strong>Settings &rarr; Apps</strong> and <strong>Play Store &rarr; My apps</strong>. All installed apps remain visible there because Android doesn't allow any non-root app to hide from system settings. The vault also cannot hide system apps (pre-installed by the phone manufacturer).
-      </p>
+    <h2>&#9888; Root vs Non-Root</h2>
+    <div class="grid">
+      <div class="card" style="border-color:#4CAF50">
+        <h3>With Root</h3>
+        <p style="font-size:14px;line-height:1.6">Hidden apps completely vanish from the system &mdash; no icon in launcher, no trace in Settings → Apps, not visible in Play Store. Uses <code>pm hide</code> via <code>su</code>. Green "root" badge shown on hidden apps in vault.</p>
+      </div>
+      <div class="card" style="border-color:rgba(233,69,96,.3)">
+        <h3>Without Root</h3>
+        <p style="font-size:14px;line-height:1.6">Hidden apps disappear from launcher, app drawer, and system search. Still visible in <strong>Settings → Apps</strong> and <strong>Play Store</strong>. Android doesn't allow non-root apps to hide from system settings. No system apps can be hidden.</p>
+      </div>
     </div>
   </section>
 
