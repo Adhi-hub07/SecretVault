@@ -3,145 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SecretVault - Invisible Android Vault</title>
+<title>SecretVault - Hidden Vault Inside Calculator</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e0e0e0;overflow-x:hidden}
-.stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;background:radial-gradient(2px 2px at 20px 30px,#eee,transparent),radial-gradient(2px 2px at 40px 70px,#fff,transparent),radial-gradient(1px 1px at 90px 40px,#ddd,transparent),radial-gradient(1px 1px at 130px 80px,#eee,transparent),radial-gradient(2px 2px at 160px 30px,#fff,transparent);background-size:200px 100px,150px 150px,200px 150px,250px 200px,200px 150px;animation:twinkle 4s ease-in-out infinite alternate}
-@keyframes twinkle{0%{opacity:.5}100%{opacity:1}}
-.container{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:40px 24px}
-.hero{text-align:center;padding:60px 0 40px}
-.hero h1{font-size:48px;font-weight:800;background:linear-gradient(135deg,#e94560,#0f3460,#53d8fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
-.hero p{font-size:18px;color:#8899aa;margin-top:12px;line-height:1.6}
-.dialer-code{display:inline-block;background:rgba(233,69,96,.15);border:1px solid #e94560;border-radius:12px;padding:12px 28px;font-size:22px;font-weight:700;color:#e94560;letter-spacing:2px;margin-top:16px;font-family:'Courier New',monospace}
-.badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}
-.badge{background:rgba(15,52,96,.5);border:1px solid #0f3460;border-radius:20px;padding:6px 16px;font-size:13px;color:#53d8fb}
-.download-btn{display:inline-block;background:linear-gradient(135deg,#e94560,#c23152);color:#fff;border:none;border-radius:16px;padding:18px 48px;font-size:20px;font-weight:700;text-decoration:none;transition:all .3s ease;box-shadow:0 8px 32px rgba(233,69,96,.3);margin-top:32px}
-.download-btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(233,69,96,.5)}
-.download-btn small{display:block;font-size:13px;font-weight:400;opacity:.8;margin-top:4px}
-.features{padding:40px 0}
-.features h2{font-size:28px;font-weight:700;margin-bottom:32px;color:#fff;text-align:center}
-.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:600px){.feature-grid{grid-template-columns:1fr}}
-.feature-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;transition:all .3s ease}
-.feature-card:hover{background:rgba(255,255,255,.06);border-color:rgba(233,69,96,.3);transform:translateY(-2px)}
-.feature-card .icon{font-size:28px;margin-bottom:12px;display:block}
-.feature-card h3{font-size:16px;font-weight:600;color:#fff;margin-bottom:8px}
-.feature-card p{font-size:14px;color:#8899aa;line-height:1.5}
-.how-to{padding:40px 0}
-.how-to h2{font-size:28px;font-weight:700;text-align:center;margin-bottom:32px;color:#fff}
-.steps{display:flex;flex-direction:column;gap:12px}
-.step{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px}
-.step-num{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e94560,#0f3460);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
-.step-content{flex:1}
-.step-content h4{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px}
-.step-content p{font-size:13px;color:#8899aa}
-.footer{text-align:center;padding:32px 0;color:#555;font-size:13px;border-top:1px solid rgba(255,255,255,.05);margin-top:40px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0}
+.container{max-width:780px;margin:0 auto;padding:32px 20px}
+.hero{padding:40px 0 30px;text-align:center}
+.hero h1{font-size:40px;font-weight:800;background:linear-gradient(135deg,#e94560,#4CAF50);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:#8899aa;margin:10px 0 16px;font-size:16px;line-height:1.5}
+.secret-box{display:inline-block;background:#1a1a2e;border:2px dashed #e94560;border-radius:12px;padding:14px 28px;font-size:20px;font-weight:700;color:#e94560;font-family:monospace;letter-spacing:3px;margin:8px 0}
+.badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.badges span{background:rgba(15,52,96,.5);border:1px solid #0f3460;border-radius:20px;padding:5px 14px;font-size:12px;color:#53d8fb}
+.dl-btn{display:inline-block;background:linear-gradient(135deg,#e94560,#c23152);color:#fff;border-radius:14px;padding:16px 44px;font-size:18px;font-weight:700;text-decoration:none;margin:20px 0 0;box-shadow:0 6px 24px rgba(233,69,96,.3);transition:.2s}
+.dl-btn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(233,69,96,.5)}
+.dl-btn small{display:block;font-size:12px;font-weight:400;opacity:.8;margin-top:3px}
+section{padding:28px 0}
+section h2{font-size:24px;font-weight:700;margin-bottom:20px;color:#fff}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;margin-bottom:12px}
+.card h3{color:#fff;font-size:15px;margin-bottom:6px}
+.card p{color:#8899aa;font-size:14px;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:550px){.grid{grid-template-columns:1fr}}
+.step-list{display:flex;flex-direction:column;gap:10px}
+.step-item{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px}
+.step-num{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e94560,#4CAF50);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;margin-top:2px}
+.step-text h4{font-size:14px;color:#fff;margin-bottom:3px}
+.step-text p{font-size:13px;color:#8899aa;line-height:1.4}
+code{background:rgba(233,69,96,.15);color:#e94560;padding:2px 8px;border-radius:4px;font-size:13px}
+.footer{text-align:center;padding:24px 0;color:#555;font-size:12px;border-top:1px solid rgba(255,255,255,.05);margin-top:20px}
 .footer a{color:#53d8fb;text-decoration:none}
-.release-info{text-align:center;margin-top:12px;font-size:14px;color:#8899aa}
-.release-info a{color:#53d8fb;text-decoration:none}
 </style>
 </head>
 <body>
-<div class="stars"></div>
 <div class="container">
   <div class="hero">
     <h1>SecretVault</h1>
-    <p>Calculator on the surface. Vault underneath.<br>A fully working calculator with a hidden vault inside.</p>
-    <div class="dialer-code">Long-press the display</div>
-    <div class="badge-row">
-      <span class="badge">Calculator Disguise</span>
-      <span class="badge">PIN Protected</span>
-      <span class="badge">App Hider</span>
-      <span class="badge">21KB</span>
+    <p>A fully working calculator — with a hidden vault inside.<br>Type <strong>2007</strong> and press <strong>=</strong> to unlock.</p>
+    <div class="secret-box">2007 + = &rarr; Vault</div>
+    <div class="badges">
+      <span>Calculator Disguise</span>
+      <span>Secret Code: 2007</span>
+      <span>PIN Protected</span>
+      <span>Hide Apps</span>
     </div>
-    <a class="download-btn" href="https://github.com/Adhi-hub07/SecretVault/releases/latest/download/SecretVault.apk">
+    <a class="dl-btn" href="https://github.com/Adhi-hub07/SecretVault/releases/latest/download/SecretVault.apk">
       Download APK
-      <small>v1.1 &middot; 21KB &middot; Android 5.0+</small>
+      <small>v1.1 &middot; 25KB &middot; Android 5.0+</small>
     </a>
+    <p style="margin-top:10px;font-size:13px;color:#555">Also accessible by dialing <code>*#*#6789#*#*</code></p>
   </div>
 
-  <div class="features">
-    <h2>Features</h2>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <span class="icon">🔢</span>
+  <section>
+    <h2>&#10003; Features</h2>
+    <div class="grid">
+      <div class="card">
         <h3>Calculator Disguise</h3>
-        <p>Looks and works like a real calculator. Hidden vault is triggered by long-pressing the display.</p>
+        <p>Appears as a normal Calculator app with a working calculator. Nobody suspects a thing.</p>
       </div>
-      <div class="feature-card">
-        <span class="icon">🔒</span>
+      <div class="card">
+        <h3>Secret Code: 2007</h3>
+        <p>Type <strong>2007</strong> in the calculator and press <strong>=</strong> &mdash; the vault opens. Any other calculation works normally.</p>
+      </div>
+      <div class="card">
         <h3>PIN Protected</h3>
-        <p>4+ digit PIN prevents unauthorized access to the vault and hidden apps.</p>
+        <p>Set a 4+ digit PIN on first use. Required every time you access the vault.</p>
       </div>
-      <div class="feature-card">
-        <span class="icon">📱</span>
+      <div class="card">
         <h3>Hide Any App</h3>
-        <p>Select any installed app to hide — it disappears from the launcher and search instantly.</p>
+        <p>Select apps from the list to hide. They disappear from launcher, search, everywhere.</p>
       </div>
-      <div class="feature-card">
-        <span class="icon">🚀</span>
-        <h3>Quick Launch</h3>
-        <p>Tap any hidden app from the vault grid to launch it. It reappears briefly, then vanishes again.</p>
+      <div class="card">
+        <h3>Launch Hidden Apps</h3>
+        <p>Tap any hidden app in the vault to launch it. It briefly reappears, then vanishes after 3 seconds.</p>
       </div>
-      <div class="feature-card">
-        <span class="icon">📞</span>
-        <h3>Secret Dialer Code</h3>
-        <p>Also accessible via <strong>*#*#6789#*#*</strong> in the phone dialer.</p>
-      </div>
-      <div class="feature-card">
-        <span class="icon">🔐</span>
-        <h3>Self-Hiding</h3>
-        <p>Use "Hide Icon" inside the vault to disable the icon. Only accessible via dialer code after that.</p>
+      <div class="card">
+        <h3>Dialer Code</h3>
+        <p>Also works by dialing <code>*#*#6789#*#*</code> in your phone app &mdash; skips the calculator.</p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="how-to">
-    <h2>How It Works</h2>
-    <div class="steps">
-      <div class="step">
+  <section>
+    <h2>&#9881; How to Use</h2>
+    <div class="step-list">
+      <div class="step-item">
         <div class="step-num">1</div>
-        <div class="step-content">
+        <div class="step-text">
           <h4>Install the APK</h4>
-          <p>Download and install the APK. It appears as "Calculator" with a calculator icon.</p>
+          <p>Download and install it. The app shows up as <strong>"Calculator"</strong> with a shield icon.</p>
         </div>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">2</div>
-        <div class="step-content">
-          <h4>Use the Calculator (or Dialer Code)</h4>
-          <p>Open the app — it's a fully working calculator. Or dial <strong>*#*#6789#*#*</strong> for direct access.</p>
+        <div class="step-text">
+          <h4>Open the Calculator</h4>
+          <p>Tap the Calculator icon. It works as a real calculator &mdash; add, subtract, multiply, divide.</p>
         </div>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">3</div>
-        <div class="step-content">
-          <h4>Access the Vault</h4>
-          <p><strong>Long-press the calculator display</strong> to open the PIN screen. Enter your PIN to access hidden apps.</p>
+        <div class="step-text">
+          <h4>Unlock the Vault</h4>
+          <p>Type <strong>2007</strong> using the calculator buttons, then press <strong>=</strong>. The PIN screen appears.</p>
         </div>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">4</div>
-        <div class="step-content">
-          <h4>Add Apps to Hide</h4>
-          <p>Tap the + button to browse installed apps. Selected apps disappear from launcher and search.</p>
+        <div class="step-text">
+          <h4>Set Your PIN (First Time)</h4>
+          <p>Enter a 4+ digit PIN and confirm. This PIN will be required every time you open the vault.</p>
         </div>
       </div>
-      <div class="step">
+      <div class="step-item">
         <div class="step-num">5</div>
-        <div class="step-content">
-          <h4>Launch Hidden Apps</h4>
-          <p>Tap any hidden app from the vault to launch it. Long-press to permanently unhide and restore its icon.</p>
+        <div class="step-text">
+          <h4>Add Apps to Hide</h4>
+          <p>Inside the vault, tap <strong>"+ Add Apps"</strong>. Browse the list and tap any app to hide it. It instantly disappears from your launcher and search results. To unhide: long-press the app in the vault.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">6</div>
+        <div class="step-text">
+          <h4>Use Hidden Apps</h4>
+          <p>Tap any hidden app from the vault grid to launch it. It re-appears for 3 seconds while you use it, then vanishes again. Long-press to permanently unhide.</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <section>
+    <h2>&#9888; Note</h2>
+    <div class="card" style="border-color:rgba(233,69,96,.3)">
+      <p style="color:#ccc;font-size:14px;line-height:1.6">
+        Hidden apps disappear from the launcher, app drawer, and system search &mdash; but still show in <strong>Settings &rarr; Apps</strong> and <strong>Play Store &rarr; My apps</strong>. All installed apps remain visible there because Android doesn't allow any non-root app to hide from system settings. The vault also cannot hide system apps (pre-installed by the phone manufacturer).
+      </p>
+    </div>
+  </section>
 
   <div class="footer">
-    <p>SecretVault &mdash; Maximum privacy, minimum footprint.</p>
-    <p style="margin-top:4px"><a href="https://github.com/Adhi-hub07/SecretVault">GitHub</a> &middot; <a href="https://github.com/Adhi-hub07/SecretVault/releases">Releases</a></p>
+    <p><a href="https://github.com/Adhi-hub07/SecretVault">GitHub Repository</a> &middot; <a href="https://github.com/Adhi-hub07/SecretVault/releases">Releases</a> &middot; Open Source</p>
   </div>
 </div>
 </body>
