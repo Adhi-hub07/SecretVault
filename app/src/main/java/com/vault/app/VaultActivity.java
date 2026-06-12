@@ -32,32 +32,25 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
             return;
         }
         final String pkg = tag;
-        String compName = pm.getComponentName(pkg);
-
-        if (compName != null) {
-            pm.setComponentEnabled(pkgMan, pkg, true);
-            try {
-                Intent launch = pkgMan.getLaunchIntentForPackage(pkg);
-                if (launch != null) startActivity(launch);
-            } catch (Exception e) {
-                Toast.makeText(this, "Cannot launch", Toast.LENGTH_SHORT).show();
-            }
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    pm.setComponentEnabled(pkgMan, pkg, false);
-                }
-            }, 3000);
-        } else {
+        pm.tempEnableForLaunch(pkgMan, pkg);
+        try {
             Intent launch = pkgMan.getLaunchIntentForPackage(pkg);
             if (launch != null) startActivity(launch);
+        } catch (Exception e) {
+            Toast.makeText(this, "Cannot launch", Toast.LENGTH_SHORT).show();
         }
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                pm.tempDisableAfterLaunch(pkgMan, pkg);
+            }
+        }, 3000);
     }
 
     @Override
     public boolean onLongClick(View v) {
         final String pkg = (String) v.getTag();
         if (pkg == null) return false;
-        pm.enableLauncher(pkgMan, pkg);
+        pm.unhideCompletely(pkgMan, pkg);
         pm.toggleHiddenApp(pkg);
         Toast.makeText(this, "Removed " + pkg, Toast.LENGTH_SHORT).show();
         loadApps();
@@ -79,9 +72,16 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
         statusText = new TextView(this);
         statusText.setText("Hidden Apps");
         statusText.setTextColor(0xFFFFFFFF);
-        statusText.setTextSize(22);
+        statusText.setTextSize(20);
         statusText.setGravity(android.view.Gravity.CENTER);
-        statusText.setPadding(0, 32, 0, 16);
+        statusText.setPadding(0, 24, 0, 4);
+
+        TextView rootStatus = new TextView(this);
+        rootStatus.setText("");
+        rootStatus.setTextColor(0xFF888888);
+        rootStatus.setTextSize(11);
+        rootStatus.setGravity(android.view.Gravity.CENTER);
+        rootStatus.setPadding(0, 0, 0, 12);
 
         Button btnHide = new Button(this);
         btnHide.setText("Hide Icon");
@@ -94,8 +94,12 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
         LinearLayout topBar = new LinearLayout(this);
         topBar.setOrientation(LinearLayout.HORIZONTAL);
         topBar.setPadding(16, 16, 16, 0);
-        topBar.addView(statusText, new LinearLayout.LayoutParams(
-            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        LinearLayout titleCol = new LinearLayout(this);
+        titleCol.setOrientation(LinearLayout.VERTICAL);
+        titleCol.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1f));
+        titleCol.addView(statusText);
+        titleCol.addView(rootStatus);
+        topBar.addView(titleCol);
         topBar.addView(btnHide);
 
         appGrid = new LinearLayout(this);
@@ -112,6 +116,7 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
 
         pm = new PinManager(this);
         pkgMan = getPackageManager();
+        rootStatus.setText(pm.getRootStatus());
         loadApps();
     }
 
@@ -171,12 +176,20 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
                     tv.setMaxLines(1);
                     tv.setEllipsize(android.text.TextUtils.TruncateAt.END);
 
+                    TextView rootTag = new TextView(this);
+                    if (pm.isRootHidden(pkg)) {
+                        rootTag.setText("root");
+                        rootTag.setTextColor(0xFF4CAF50);
+                        rootTag.setTextSize(9);
+                    }
+
                     item.addView(iv);
                     item.addView(tv);
+                    if (pm.isRootHidden(pkg)) item.addView(rootTag);
 
                     if (row != null) row.addView(item);
                 } catch (PackageManager.NameNotFoundException e) {
-                    pm.enableLauncher(pkgMan, pkg);
+                    pm.unhideCompletely(pkgMan, pkg);
                     pm.toggleHiddenApp(pkg);
                     loadApps();
                 }

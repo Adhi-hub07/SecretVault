@@ -36,14 +36,16 @@ public class AppPickerActivity extends Activity implements View.OnClickListener 
         pm.toggleHiddenApp(pkg);
 
         if (newState) {
-            pm.disableLauncher(pkgMan, pkg);
+            pm.hideCompletely(pkgMan, pkg);
         } else {
-            pm.enableLauncher(pkgMan, pkg);
+            pm.unhideCompletely(pkgMan, pkg);
         }
 
         CheckBox cb = (CheckBox) v.findViewWithTag("cb_" + pkg);
         if (cb != null) cb.setChecked(newState);
-        Toast.makeText(this, newState ? "Hidden (invisible)" : "Visible again", Toast.LENGTH_SHORT).show();
+        String msg = newState ? "Hidden" : "Visible";
+        if (newState && pm.isRooted()) msg += " (root: hidden from all)";
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -52,13 +54,27 @@ public class AppPickerActivity extends Activity implements View.OnClickListener 
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF1A1A2E);
+        root.setBackgroundColor(0xFF000000);
+
+        int st = getResources().getDisplayMetrics().density > 0 ? 24 : 24;
+
+        TextView statusLine = new TextView(this);
+        String rootStatus = "";
+        if (getSharedPreferences("vault_prefs", 0).getBoolean("root_hidden_check", false)) {
+            // already checked
+        }
+        statusLine.setText("Root: " + (new PinManager(this).isRooted() ? "YES" : "NO"));
+        statusLine.setTextColor(0xFF888888);
+        statusLine.setTextSize(12);
+        statusLine.setPadding(st, st, st, 4);
 
         TextView title = new TextView(this);
         title.setText("Select apps to hide");
         title.setTextColor(0xFFFFFFFF);
         title.setTextSize(20);
-        title.setPadding(24, 24, 24, 16);
+        title.setPadding(st, 0, st, st);
+
+        root.addView(statusLine);
         root.addView(title);
 
         ScrollView sv = new ScrollView(this);

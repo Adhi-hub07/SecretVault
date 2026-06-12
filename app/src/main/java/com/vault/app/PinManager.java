@@ -15,14 +15,39 @@ public class PinManager {
     private static final String KEY_HIDDEN_APPS = "hidden_apps";
     private static final String KEY_HIDDEN_COMPS = "hidden_components";
     private static final String KEY_IS_SETUP = "is_setup";
+    private static final String KEY_ROOT_HIDDEN = "root_hidden";
 
     private final SharedPreferences prefs;
+    private boolean rootChecked = false;
+    private boolean rootAvailable = false;
 
     public PinManager(Context context) {
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
     public boolean isSetup() { return prefs.getBoolean(KEY_IS_SETUP, false); }
+
+    public boolean isRooted() {
+        if (!rootChecked) {
+            rootAvailable = RootHelper.isRootAvailable();
+            rootChecked = true;
+        }
+        return rootAvailable;
+    }
+
+    public boolean isRootHidden(String pkg) {
+        return prefs.getString(KEY_ROOT_HIDDEN, "").contains(pkg + ",");
+    }
+
+    private void setRootHidden(String pkg, boolean hidden) {
+        String raw = prefs.getString(KEY_ROOT_HIDDEN, "");
+        if (hidden) {
+            if (!raw.contains(pkg + ",")) raw += pkg + ",";
+        } else {
+            raw = raw.replace(pkg + ",", "");
+        }
+        prefs.edit().putString(KEY_ROOT_HIDDEN, raw).apply();
+    }
 
     public void setPin(String pin) {
         prefs.edit()
@@ -104,18 +129,61 @@ public class PinManager {
             PackageManager.DONT_KILL_APP);
     }
 
-    public void disableLauncher(PackageManager pm, String pkg) {
+    public void hideCompletely(PackageManager pm, String pkg) {
+        if (isRooted()) {
+            RootHelper.pmHide(pkg);
+            setRootHidden(pkg, true);
+        }
         String cn = findLauncherComponent(pm, pkg);
-        if (cn == null) return;
-        saveComponentName(pkg, cn);
-        pm.setComponentEnabledSetting(new ComponentName(pkg, cn),
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP);
+        if (cn != null) {
+            saveComponentName(pkg, cn);
+            pm.setComponentEnabledSetting(new ComponentName(pkg, cn),
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
+        }
     }
 
-    public void enableLauncher(PackageManager pm, String pkg) {
-        setComponentEnabled(pm, pkg, true);
-        removeComponentName(pkg);
+    public void unhideCompletely(PackageManager pm, String pkg) {
+        if (isRootHidden(pkg)) {
+            RootHelper.pmUnhide(pkg);
+            setRootHidden(pkg, false);
+        }
+        String compName = getComponentName(pkg);
+        if (compName != null) {
+            pm.setComponentEnabledSetting(new ComponentName(pkg, compName),
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+            removeComponentName(pkg);
+        }
+    }
+
+    public void tempEnableForLaunch(PackageManager pm, final String pkg) {
+        if (isRootHidden(pkg)) {
+            RootHelper.pmUnhide(pkg);
+        }
+        String compName = getComponentName(pkg);
+        if (compName != null) {
+            pm.setComponentEnabledSetting(new ComponentName(pkg, compName),
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+        }
+    }
+
+    public void tempDisableAfterLaunch(PackageManager pm, final String pkg) {
+        if (isRootHidden(pkg)) {
+            RootHelper.pmHide(pkg);
+        }
+        String compName = getComponentName(pkg);
+        if (compName != null) {
+            pm.setComponentEnabledSetting(new ComponentName(pkg, compName),
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
+        }
+    }
+
+    public String getRootStatus() {
+        if (isRooted()) return "Root available - apps hidden from Settings & Play Store";
+        return "No root - apps hidden from launcher only";
     }
 
     private String hash(String s) {
