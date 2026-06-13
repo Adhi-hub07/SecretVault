@@ -1,8 +1,10 @@
 package com.vault.app;
 
 import android.app.Activity;
-import android.content.pm.ApplicationInfo;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
@@ -18,15 +20,6 @@ public class AppPickerActivity extends Activity implements View.OnClickListener 
     private PinManager pm;
     private PackageManager pkgMan;
     private LinearLayout list;
-
-    static class AppComparator implements Comparator<ApplicationInfo> {
-        PackageManager pm;
-        AppComparator(PackageManager p) { pm = p; }
-        public int compare(ApplicationInfo a, ApplicationInfo b) {
-            return a.loadLabel(pm).toString().compareToIgnoreCase(
-                b.loadLabel(pm).toString());
-        }
-    }
 
     @Override
     public void onClick(View v) {
@@ -87,16 +80,25 @@ public class AppPickerActivity extends Activity implements View.OnClickListener 
     }
 
     void loadApps() {
-        List<ApplicationInfo> apps = pkgMan.getInstalledApplications(0);
-        Collections.sort(apps, new AppComparator(pkgMan));
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN);
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> resList = pkgMan.queryIntentActivities(mainIntent, 0);
+        Collections.sort(resList, new Comparator<ResolveInfo>() {
+            public int compare(ResolveInfo a, ResolveInfo b) {
+                return a.loadLabel(pkgMan).toString().compareToIgnoreCase(
+                    b.loadLabel(pkgMan).toString());
+            }
+        });
 
-        for (ApplicationInfo ai : apps) {
-            if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (ResolveInfo ri : resList) {
+            ActivityInfo ai = ri.activityInfo;
             String pkg = ai.packageName;
             if (pkg.equals(getPackageName())) continue;
+            if (!seen.add(pkg)) continue;
 
             Drawable icon = ai.loadIcon(pkgMan);
-            String name = ai.loadLabel(pkgMan).toString();
+            String name = ri.loadLabel(pkgMan).toString();
             boolean hidden = pm.isHidden(pkg);
 
             LinearLayout row = new LinearLayout(this);
