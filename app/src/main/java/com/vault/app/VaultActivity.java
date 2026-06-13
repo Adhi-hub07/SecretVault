@@ -125,7 +125,20 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
         appGrid.removeAllViews();
 
         String[] hidden = pm.getHiddenApps();
-        if (hidden.length == 0 || hidden[0].isEmpty()) {
+        java.util.ArrayList<String> validApps = new java.util.ArrayList<>();
+        for (String pkg : hidden) {
+            if (pkg.isEmpty()) continue;
+            try {
+                pkgMan.getApplicationInfo(pkg, 0);
+                validApps.add(pkg);
+            } catch (PackageManager.NameNotFoundException e) {
+                pm.unhideCompletely(pkgMan, pkg);
+                pm.toggleHiddenApp(pkg);
+            }
+        }
+        hidden = validApps.toArray(new String[0]);
+
+        if (hidden.length == 0) {
             TextView empty = new TextView(this);
             empty.setText("No hidden apps yet.\nTap + to add apps.");
             empty.setTextColor(0xFF8899AA);
@@ -177,22 +190,20 @@ public class VaultActivity extends Activity implements View.OnClickListener, Vie
                     tv.setMaxLines(1);
                     tv.setEllipsize(android.text.TextUtils.TruncateAt.END);
 
-                    TextView rootTag = new TextView(this);
+                    item.addView(iv);
+                    item.addView(tv);
                     if (pm.isRootHidden(pkg)) {
+                        TextView rootTag = new TextView(this);
                         rootTag.setText("root");
                         rootTag.setTextColor(0xFF4CAF50);
                         rootTag.setTextSize(9);
+                        item.addView(rootTag);
                     }
-
-                    item.addView(iv);
-                    item.addView(tv);
-                    if (pm.isRootHidden(pkg)) item.addView(rootTag);
 
                     if (row != null) row.addView(item);
                 } catch (PackageManager.NameNotFoundException e) {
                     pm.unhideCompletely(pkgMan, pkg);
                     pm.toggleHiddenApp(pkg);
-                    loadApps();
                 }
             }
         }

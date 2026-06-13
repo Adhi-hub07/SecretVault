@@ -250,6 +250,7 @@ public class SecretVault extends Activity implements View.OnClickListener {
     }
 
     void onPinKey(String digit) {
+        handler.removeCallbacksAndMessages(null);
         enteredPin += digit;
         updatePinDots();
         if (enteredPin.length() >= 4) {
