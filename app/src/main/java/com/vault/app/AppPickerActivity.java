@@ -59,10 +59,6 @@ public class AppPickerActivity extends Activity implements View.OnClickListener 
         int st = getResources().getDisplayMetrics().density > 0 ? 24 : 24;
 
         TextView statusLine = new TextView(this);
-        String rootStatus = "";
-        if (getSharedPreferences("vault_prefs", 0).getBoolean("root_hidden_check", false)) {
-            // already checked
-        }
         statusLine.setText("Root: " + (new PinManager(this).isRooted() ? "YES" : "NO"));
         statusLine.setTextColor(0xFF888888);
         statusLine.setTextSize(12);
